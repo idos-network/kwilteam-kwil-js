@@ -4,7 +4,7 @@ import { Transaction, TxReceipt } from '../core/tx';
 import { Api } from './api';
 import { ClientConfig } from './config';
 import { GenericResponse } from '../core/resreq';
-import { base64ToHex, bytesToHex, hexToBase64, hexToBytes } from '../utils/serial';
+import { base64ToHex, bytesToHex, hexToBytes } from '../utils/serial';
 import { TxInfoReceipt } from '../core/txQuery';
 import { CallClientResponse, Message } from '../core/message';
 import {
@@ -210,8 +210,13 @@ export default class Client extends Api {
         throw new Error(JSON.stringify(r.result) || `Transaction failed after broadcast.`);
       }
 
+      const txHash = base64ToHex(r.result.tx_hash);
+      if (!/^[0-9a-fA-F]{64}$/.test(txHash)) {
+        throw new Error(`invalid tx_hash length: expected 64 hex chars, got ${txHash.length}`);
+      }
+
       return {
-        tx_hash: base64ToHex(r.result.tx_hash),
+        tx_hash: txHash,
       };
     });
   }
@@ -267,7 +272,7 @@ export default class Client extends Api {
 
   protected async txInfoClient(tx_hash: string): Promise<GenericResponse<TxInfoReceipt>> {
     const body = this.buildJsonRpcRequest<TxQueryRequest>(JSONRPCMethod.METHOD_TX_QUERY, {
-      tx_hash: hexToBase64(tx_hash),
+      tx_hash,
     });
 
     const res = await super.post<JsonRPCResponse<TxQueryResponse>>(`/rpc/v1`, body);

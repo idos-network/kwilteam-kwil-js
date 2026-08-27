@@ -4,7 +4,9 @@ import { Transaction, Txn } from '../../../src/core/tx';
 import { CallClientResponse, Message, Msg } from '../../../src/core/message';
 import { BytesEncodingStatus } from '../../../src/core/enums';
 import { stringToBytes } from '../../../dist/utils/serial';
+import { SignatureType } from '../../../src/core/signature';
 import { bytesToBase64 } from '../../../src/utils/base64';
+import { hexToBytes } from '../../../src/utils/serial';
 import { ClientConfig } from '../../../src/api_client/config';
 import { GenericResponse } from '../../../src/core/resreq';
 import { Account, ChainInfo, DatasetInfo } from '../../../src/core/network';
@@ -137,6 +139,81 @@ describe('Client', () => {
         it('should throw an error when broadcasting an unsigned transaction', async () => {
             const tx = Txn.create<BytesEncodingStatus.BASE64_ENCODED>(() => {}); // Assuming this transaction is unsigned by default
             await expect(client.broadcast(tx)).rejects.toThrow('Tx must be signed before broadcasting.');
+        });
+
+        it('passes through 64-char hex tx_hash from broadcast', async () => {
+            const hexHash = 'e3d2bc9e38cc02af7e6babe4094a8a8afcf0074cb93151ca8339770ae554f45d';
+            postMock.mockResolvedValue({
+                status: 200,
+                data: {
+                    jsonrpc: '2.0',
+                    id: 1,
+                    result: { tx_hash: hexHash },
+                },
+            });
+
+            const tx = Txn.create<BytesEncodingStatus.BASE64_ENCODED>((data) => {
+                data.signature = { sig: 'c2ln', type: SignatureType.SECP256K1_PERSONAL };
+            });
+            const result = await client.broadcast(tx);
+            expect(result.data?.tx_hash).toBe(hexHash);
+        });
+
+        it('rejects a corrupted 96-char hex tx_hash', async () => {
+            postMock.mockResolvedValue({
+                status: 200,
+                data: {
+                    jsonrpc: '2.0',
+                    id: 1,
+                    result: {
+                        tx_hash:
+                            '7b77766dcf5edfc71cd3669fedee9b69b7b8d3de1af1af1a7dc7f4d3be1c6fddf5e7571af37dfdefbd1a7b9e787f8e5d',
+                    },
+                },
+            });
+
+            const tx = Txn.create<BytesEncodingStatus.BASE64_ENCODED>((data) => {
+                data.signature = { sig: 'c2ln', type: SignatureType.SECP256K1_PERSONAL };
+            });
+            await expect(client.broadcast(tx)).rejects.toThrow('invalid tx_hash length: expected 64 hex chars, got 144');
+        });
+    });
+
+    describe('txInfo', () => {
+        it('sends 64-char hex tx_hash, not base64', async () => {
+            const hexHash = 'e3d2bc9e38cc02af7e6babe4094a8a8afcf0074cb93151ca8339770ae554f45d';
+            postMock.mockResolvedValue({
+                status: 200,
+                data: {
+                    jsonrpc: '2.0',
+                    id: 1,
+                    result: {
+                        hash: hexHash,
+                        height: 1,
+                        tx: {
+                            body: {
+                                payload: bytesToBase64(new Uint8Array([1, 2, 3])),
+                                fee: '0',
+                            },
+                            signature: { sig: bytesToBase64(new Uint8Array([4])) },
+                            sender: hexHash,
+                        },
+                    },
+                },
+            });
+
+            await client.txInfo(hexHash);
+            expect(postMock).toHaveBeenCalledWith(
+                '/rpc/v1',
+                expect.objectContaining({
+                    method: 'user.tx_query',
+                    params: { tx_hash: hexHash },
+                }),
+                undefined
+            );
+            expect(postMock.mock.calls[0][1].params.tx_hash).not.toBe(
+                bytesToBase64(hexToBytes(hexHash))
+            );
         });
     });
 

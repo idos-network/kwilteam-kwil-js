@@ -101,7 +101,15 @@ export function hexToBytes(hex: string): Uint8Array {
     return bytes;
 }
 
+export function isHexTxHash(value: string): boolean {
+    const hex = value.startsWith('0x') || value.startsWith('0X') ? value.slice(2) : value;
+    return hex.length === 64 && /^[0-9a-fA-F]+$/.test(hex);
+}
+
 export function base64ToHex(base64: string): HexString {
+    if (isHexTxHash(base64)) {
+        return base64.startsWith('0x') || base64.startsWith('0X') ? base64.slice(2) : base64;
+    }
     return bytesToHex(base64ToBytes(base64));
 }
 
