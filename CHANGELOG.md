@@ -2,11 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [Unreleased]
+### [0.1.7](https://github.com/idos-network/kwilteam-kwil-js/compare/v0.9.6-rc.2...v0.1.7) (2026-08-27)
+
+
+### Features
+
+* **auth:** add NodeKwil KGW cookie session helpers ([3adf14c](https://github.com/idos-network/kwilteam-kwil-js/commit/3adf14cca3b15e1c5391c0366f75eea002e0c982))
+
 
 ### Bug Fixes
 
-* expose `CallResult.error` from `call()` responses so action-level errors are distinguishable from empty result sets
+* **call:** expose CallResult.error in call() responses ([2e77978](https://github.com/idos-network/kwilteam-kwil-js/commit/2e77978107efa6e7726c1d9f02d76a630c67d990))
 
 ### [0.9.5](https://github.com/trufnetwork/kwil-js/compare/v0.9.3...v0.9.5) (2025-04-01)
 
