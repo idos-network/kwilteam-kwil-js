@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.8](https://github.com/idos-network/kwilteam-kwil-js/compare/v0.1.7...v0.1.8) (2026-09-22)
+
+
+### Features
+
+* **auth:** add optional origin field to KGWAuthInfo and update composeAuthMsg to handle it ([1279342](https://github.com/idos-network/kwilteam-kwil-js/commit/12793421f0de8760e4bf566c79bad7f2e55e2830))
+
 ### [0.1.7](https://github.com/idos-network/kwilteam-kwil-js/compare/v0.9.6-rc.2...v0.1.7) (2026-08-27)
 
 
