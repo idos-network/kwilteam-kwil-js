@@ -23,6 +23,8 @@ export interface KGWAuthInfo {
   domain: string;
   version: string;
   uri: string;
+  /** Browser Origin stamped by KGW. Omitted for CLI/Node (no Origin header). */
+  origin?: string;
 }
 
 export type AuthSuccess<T extends EnvironmentType> = T extends EnvironmentType.BROWSER
@@ -66,6 +68,9 @@ export function composeAuthMsg(
   msg += '\n';
   // @Yaiba: Should I trust the URI provided by KGW or should I use the domain / create my own?
   msg += `URI: ${authParam.uri}\n`;
+  if (authParam.origin) {
+    msg += `Origin: ${authParam.origin}\n`;
+  }
   msg += `Version: ${version}\n`;
   msg += `Chain ID: ${chainId}\n`;
   msg += `Nonce: ${authParam.nonce}\n`;
